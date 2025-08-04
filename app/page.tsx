@@ -76,7 +76,7 @@ export default function HangmanGame() {
     }
 
     // Add hint bonus if any hints were used
-    if (hint1Used || hint2Used) {
+    if (!hint1Used) {
       finalScore += hintBonus
     }
 
@@ -396,9 +396,9 @@ export default function HangmanGame() {
                         <p className="text-2xl font-bold text-green-600">🎉 Correct!</p>
                         <p className="text-sm text-muted-foreground">
                           +{calculateScore()} points
-                          {(hint1Used || hint2Used) && (
+                          {(!hint1Used) && (
                             <span className="block text-green-500 text-xs">
-                              +{hangmanConfig.scoring.hintBonus} pts hint bonus!
+                              +{hangmanConfig.scoring.hintBonus} pts no hint bonus!
                             </span>
                           )}
                         </p>
