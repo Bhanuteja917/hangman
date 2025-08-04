@@ -1,0 +1,199 @@
+{
+  "categories": {
+    "Fruits": [
+      {
+        "word": "APPLE",
+        "hints": [
+          "A red or green fruit that keeps the doctor away",
+          "Often used to make pies and the company that makes iPhones shares this name"
+        ]
+      },
+      {
+        "word": "BANANA",
+        "hints": [
+          "Yellow curved fruit loved by monkeys",
+          "High in potassium and has a peel that people slip on in cartoons"
+        ]
+      },
+      {
+        "word": "ORANGE",
+        "hints": [
+          "Citrus fruit that shares its name with a color",
+          "Rich in vitamin C and has segments inside with a thick peel"
+        ]
+      },
+      {
+        "word": "STRAWBERRY",
+        "hints": [
+          "Red berry with seeds on the outside",
+          "Popular heart-shaped topping for shortcake that grows close to the ground"
+        ]
+      },
+      {
+        "word": "PINEAPPLE",
+        "hints": [
+          "Tropical fruit with a crown",
+          "Yellow inside with spiky exterior, popular controversial pizza topping"
+        ]
+      },
+      {
+        "word": "WATERMELON",
+        "hints": [
+          "Large green fruit that's mostly water",
+          "Has black seeds and pink flesh, perfect summer fruit for picnics"
+        ]
+      },
+      {
+        "word": "GRAPE",
+        "hints": [
+          "Small fruit that grows in bunches",
+          "Used to make wine and comes in purple, green, and red varieties"
+        ]
+      },
+      {
+        "word": "MANGO",
+        "hints": ["Sweet tropical fruit", "Orange flesh with large pit, often called the 'king of fruits'"]
+      },
+      {
+        "word": "CHERRY",
+        "hints": ["Small red fruit with a pit", "Used in desserts and grows on trees with beautiful flowers"]
+      },
+      {
+        "word": "PEACH",
+        "hints": ["Fuzzy orange fruit", "Has a large pit and Georgia is famous for growing these"]
+      }
+    ],
+    "Movies": [
+      {
+        "word": "TITANIC",
+        "hints": [
+          "Epic romance about a doomed ship",
+          "Leonardo DiCaprio and Kate Winslet with famous line 'I'm the king of the world!'"
+        ]
+      },
+      {
+        "word": "AVATAR",
+        "hints": ["Blue aliens on Pandora", "James Cameron sci-fi epic featuring the Na'vi people"]
+      },
+      {
+        "word": "INCEPTION",
+        "hints": ["Dreams within dreams", "Christopher Nolan thriller with a spinning top plot device"]
+      },
+      {
+        "word": "MATRIX",
+        "hints": ["Red pill or blue pill?", "Keanu Reeves as Neo in cyberpunk film with bullet time effects"]
+      },
+      {
+        "word": "GLADIATOR",
+        "hints": ["Are you not entertained?", "Russell Crowe as Roman general turned slave in arena battles"]
+      },
+      {
+        "word": "FROZEN",
+        "hints": ["Let it go, let it go", "Disney animated movie about sisters Elsa and Anna with ice powers"]
+      },
+      {
+        "word": "JAWS",
+        "hints": ["You're gonna need a bigger boat", "Spielberg's shark thriller that made people afraid of swimming"]
+      },
+      {
+        "word": "ROCKY",
+        "hints": ["Philadelphia boxer", "Sylvester Stallone film with famous training montage running up steps"]
+      },
+      {
+        "word": "ALIEN",
+        "hints": ["In space, no one can hear you scream", "Ridley Scott's sci-fi horror with the xenomorph creature"]
+      },
+      {
+        "word": "CASABLANCA",
+        "hints": ["Here's looking at you, kid", "Classic WWII film with Humphrey Bogart and Ingrid Bergman in Morocco"]
+      }
+    ],
+    "Programming Terms": [
+      {
+        "word": "ALGORITHM",
+        "hints": ["Step-by-step problem-solving procedure", "Set of rules used in computer science and mathematics"]
+      },
+      {
+        "word": "VARIABLE",
+        "hints": [
+          "Container for storing data values",
+          "Can hold different types of information and its value can change"
+        ]
+      },
+      {
+        "word": "FUNCTION",
+        "hints": ["Reusable block of code", "Takes input parameters, returns output, and helps organize code"]
+      },
+      {
+        "word": "ARRAY",
+        "hints": ["Collection of elements", "Stores multiple values accessed using index numbers"]
+      },
+      {
+        "word": "LOOP",
+        "hints": ["Repeating code structure", "Executes same code multiple times, includes for, while, do-while types"]
+      },
+      {
+        "word": "BOOLEAN",
+        "hints": ["True or false data type", "Named after George Boole, used in conditional statements"]
+      },
+      {
+        "word": "STRING",
+        "hints": ["Sequence of characters", "Used to represent text in programming, often enclosed in quotes"]
+      },
+      {
+        "word": "INTEGER",
+        "hints": ["Whole number data type", "Can be positive, negative, or zero with no decimal points"]
+      },
+      {
+        "word": "OBJECT",
+        "hints": [
+          "Collection of properties and methods",
+          "Fundamental OOP concept that can represent real-world entities"
+        ]
+      },
+      {
+        "word": "CLASS",
+        "hints": [
+          "Blueprint for creating objects",
+          "Defines properties and methods, key concept in object-oriented programming"
+        ]
+      }
+    ]
+  },
+  "difficulty": {
+    "Easy": {
+      "timePerQuestion": 45,
+      "maxWrongGuesses": 8,
+      "baseScore": 10,
+      "timeBonus": false,
+      "timeBonusMultiplier": 1.0,
+      "difficultyMultiplier": 1
+    },
+    "Medium": {
+      "timePerQuestion": 30,
+      "maxWrongGuesses": 6,
+      "baseScore": 15,
+      "timeBonus": false,
+      "timeBonusMultiplier": 1.25,
+      "difficultyMultiplier": 1
+    },
+    "Hard": {
+      "timePerQuestion": 25,
+      "maxWrongGuesses": 4,
+      "baseScore": 20,
+      "timeBonus": false,
+      "timeBonusMultiplier": 1.5,
+      "difficultyMultiplier": 1
+    }
+  },
+  "scoring": {
+    "hintBonus": 5,
+    "hint1Penalty": 0,
+    "hint2Penalty": 5,
+    "wrongGuessPenalty": 5,
+    "timeoutPenalty": 0
+  },
+  "gameSettings": {
+    "roundsPerSession": 5
+  }
+}

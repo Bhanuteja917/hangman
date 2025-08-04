@@ -1,0 +1,499 @@
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { HangmanDrawing } from "@/components/hangman-drawing"
+import { OnScreenKeyboard } from "@/components/on-screen-keyboard"
+import { FloatingHeader } from "@/components/floating-header"
+import { Clock, Trophy, Target, Lightbulb } from "lucide-react"
+import hangmanConfig from "../hangman.config.json"
+
+type GameState = "setup" | "playing" | "roundComplete" | "gameComplete"
+type WordData = { word: string; hints: string[] }
+
+export default function HangmanGame() {
+  // Game setup state
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("")
+  const [gameState, setGameState] = useState<GameState>("setup")
+
+  // Game state
+  const [currentRound, setCurrentRound] = useState(1)
+  const [currentWord, setCurrentWord] = useState<WordData>({ word: "", hints: [] })
+  const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set())
+  const [wrongGuesses, setWrongGuesses] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(30)
+  const [score, setScore] = useState(0)
+  const [usedWords, setUsedWords] = useState<Set<string>>(new Set())
+
+  // Add these new state variables after the existing state declarations:
+  const [hint1Used, setHint1Used] = useState(false)
+  const [hint2Used, setHint2Used] = useState(false)
+  const [showHint1, setShowHint1] = useState(false)
+  const [showHint2, setShowHint2] = useState(false)
+
+  const difficultySettings = selectedDifficulty
+    ? hangmanConfig.difficulty[selectedDifficulty as keyof typeof hangmanConfig.difficulty]
+    : hangmanConfig.difficulty.Easy
+
+  const maxWrongGuesses = difficultySettings.maxWrongGuesses
+  const timePerQuestion = difficultySettings.timePerQuestion
+
+  // Check if word is complete
+  const isWordComplete = currentWord.word.split("").every((letter) => letter === " " || guessedLetters.has(letter))
+
+  // Check if game is lost
+  const isGameLost = wrongGuesses >= maxWrongGuesses || timeLeft <= 0
+
+  // Calculate score based on configuration
+  const calculateScore = useCallback(() => {
+    if (!isWordComplete || isGameLost) return 0
+
+    const { baseScore, timeBonus, timeBonusMultiplier, difficultyMultiplier } = difficultySettings
+    const { hintBonus, hint1Penalty, hint2Penalty } = hangmanConfig.scoring
+
+    let finalScore = baseScore
+
+    // Add time bonus if enabled
+    if (timeBonus) {
+      const timeBonusPoints = Math.floor((timeLeft / timePerQuestion) * 100 * timeBonusMultiplier)
+      finalScore += timeBonusPoints
+    }
+
+    // Apply difficulty multiplier
+    finalScore *= difficultyMultiplier
+
+    // Apply hint penalties/bonuses
+    if (hint1Used) {
+      finalScore -= hint1Penalty // This will be 0 (no penalty) or negative (penalty)
+    }
+    if (hint2Used) {
+      finalScore -= hint2Penalty // This will be 0 (no penalty) or negative (penalty)
+    }
+
+    // Add hint bonus if any hints were used
+    if (hint1Used || hint2Used) {
+      finalScore += hintBonus
+    }
+
+    return Math.max(0, finalScore) // Ensure score doesn't go negative
+  }, [isWordComplete, isGameLost, timeLeft, timePerQuestion, difficultySettings, hint1Used, hint2Used])
+
+  // Get a random word from selected category
+  const getRandomWord = useCallback(() => {
+    if (!selectedCategory) return { word: "", hints: [] }
+
+    const categoryWords = hangmanConfig.categories[selectedCategory as keyof typeof hangmanConfig.categories]
+    const availableWords = categoryWords.filter((wordData) => !usedWords.has(wordData.word))
+
+    if (availableWords.length === 0) {
+      // Reset used words if all have been used
+      setUsedWords(new Set())
+      return categoryWords[Math.floor(Math.random() * categoryWords.length)]
+    }
+
+    return availableWords[Math.floor(Math.random() * availableWords.length)]
+  }, [selectedCategory, usedWords])
+
+  // Start new round
+  const startNewRound = useCallback(() => {
+    const newWord = getRandomWord()
+    setCurrentWord(newWord)
+    setGuessedLetters(new Set())
+    setWrongGuesses(0)
+    setTimeLeft(timePerQuestion)
+    setHint1Used(false)
+    setHint2Used(false)
+    setShowHint1(false)
+    setShowHint2(false)
+    setUsedWords((prev) => new Set([...prev, newWord.word]))
+    setGameState("playing")
+  }, [getRandomWord, timePerQuestion])
+
+  // Handle letter guess
+  const handleLetterGuess = useCallback(
+    (letter: string) => {
+      if (gameState !== "playing" || guessedLetters.has(letter)) return
+
+      const newGuessedLetters = new Set([...guessedLetters, letter])
+      setGuessedLetters(newGuessedLetters)
+
+      if (!currentWord.word.includes(letter)) {
+        setWrongGuesses((prev) => prev + 1)
+        // Apply wrong guess penalty
+        const penalty = hangmanConfig.scoring.wrongGuessPenalty
+        setScore((prev) => Math.max(0, prev - penalty))
+      }
+    },
+    [gameState, guessedLetters, currentWord.word],
+  )
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const letter = event.key.toUpperCase()
+      if (letter >= "A" && letter <= "Z") {
+        handleLetterGuess(letter)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [handleLetterGuess])
+
+  // Timer effect
+  useEffect(() => {
+    if (gameState === "playing" && timeLeft > 0 && !isWordComplete && !isGameLost) {
+      const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [gameState, timeLeft, isWordComplete, isGameLost])
+
+  // Update the scoring calculation in the round completion effect:
+  useEffect(() => {
+    if (gameState === "playing" && (isWordComplete || isGameLost)) {
+      if (isWordComplete && !isGameLost) {
+        const roundScore = calculateScore()
+        setScore((prev) => prev + roundScore)
+      } else if (isGameLost && timeLeft <= 0) {
+        // Apply timeout penalty
+        const penalty = hangmanConfig.scoring.timeoutPenalty
+        setScore((prev) => Math.max(0, prev - penalty))
+      }
+
+      setTimeout(() => {
+        if (currentRound >= hangmanConfig.gameSettings.roundsPerSession) {
+          setGameState("gameComplete")
+        } else {
+          setGameState("roundComplete")
+        }
+      }, 2000)
+    }
+  }, [gameState, isWordComplete, isGameLost, timeLeft, currentRound, calculateScore])
+
+  // Start game
+  const startGame = () => {
+    setCurrentRound(1)
+    setScore(0)
+    setUsedWords(new Set())
+    startNewRound()
+  }
+
+  // Next round
+  const nextRound = () => {
+    setCurrentRound((prev) => prev + 1)
+    startNewRound()
+  }
+
+  // Reset game
+  const resetGame = () => {
+    setGameState("setup")
+    setSelectedCategory("")
+    setSelectedDifficulty("")
+    setCurrentRound(1)
+    setScore(0)
+    setUsedWords(new Set())
+  }
+
+  // Render word with guessed letters
+  const renderWord = () => {
+    return currentWord.word.split("").map((letter, index) => (
+      <span key={index} className="inline-block w-8 h-10 mx-1 text-2xl font-bold text-center border-b-2 border-primary">
+        {letter === " " ? " " : guessedLetters.has(letter) ? letter : ""}
+      </span>
+    ))
+  }
+
+  // Add a new function to handle hint showing:
+  const handleShowHint1 = () => {
+    setHint1Used(true)
+    setShowHint1(true)
+  }
+
+  const handleShowHint2 = () => {
+    setHint2Used(true)
+    setShowHint2(true)
+  }
+
+  return (
+    <>
+      {/* Floating Header */}
+      <FloatingHeader
+        logoSrc="/placeholder.svg?height=40&width=120&text=Your+Company"
+        logoAlt="Your Company Logo"
+        companyName="Your Company"
+      />
+
+      {gameState === "setup" && (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20">
+          <div className="max-w-2xl mx-auto pt-20">
+            <Card className="shadow-2xl">
+              <CardHeader className="text-center">
+                <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  🎯 Hangman Game
+                </CardTitle>
+                <p className="text-muted-foreground mt-2">Guess the word before time runs out!</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium ml-1 mb-0">Select Category</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-full mt-px">
+                        <SelectValue placeholder="Choose a category..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(hangmanConfig.categories).map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium ml-1">Select Difficulty</label>
+                    <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose difficulty..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(hangmanConfig.difficulty).map(([level, settings]) => (
+                          <SelectItem key={level} value={level}>
+                            {level} (Base: {settings.baseScore} pts, {settings.timePerQuestion}s,{" "}
+                            {settings.maxWrongGuesses} wrong guesses)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Game Rules:</h3>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• {hangmanConfig.gameSettings.roundsPerSession} rounds per game</li>
+                    <li>• Guess letters using keyboard or on-screen buttons</li>
+                    <li>• Complete words before time runs out</li>
+                    <li>• Higher difficulty = more points!</li>
+                    <li>• Wrong guess penalty: -{hangmanConfig.scoring.wrongGuessPenalty} pts</li>
+                    <li>• Timeout penalty: -{hangmanConfig.scoring.timeoutPenalty} pts</li>
+                    <li>• Hint bonus: +{hangmanConfig.scoring.hintBonus} pts (if any hints used)</li>
+                  </ul>
+                </div>
+
+                <Button
+                  onClick={startGame}
+                  disabled={!selectedCategory || !selectedDifficulty}
+                  className="w-full text-lg py-6"
+                  size="lg"
+                >
+                  🎮 Start Game
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {gameState === "playing" && (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20">
+          <div className="max-w-4xl mx-auto">
+            {/* Game Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-lg px-3 py-1">
+                  <Target className="w-4 h-4 mr-1" />
+                  Round {currentRound}/{hangmanConfig.gameSettings.roundsPerSession}
+                </Badge>
+                <Badge variant="outline" className="text-lg px-3 py-1">
+                  <Trophy className="w-4 h-4 mr-1" />
+                  Score: {score}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                <span className={`text-2xl font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : ""}`}>
+                  {timeLeft}s
+                </span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <Progress value={(timeLeft / timePerQuestion) * 100} className="h-2" />
+            </div>
+
+            {/* Main Game Card */}
+            <Card className="shadow-2xl">
+              <CardHeader className="text-center">
+                <div className="flex justify-between items-center">
+                  <Badge variant="secondary">{selectedCategory}</Badge>
+                  <Badge variant="secondary">{selectedDifficulty}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div className="grid grid-cols-3 gap-8">
+                  {/* Word Display - Cells A and B (spans 2 columns) */}
+                  <div className="col-span-2 flex flex-col items-center justify-center space-y-6 min-h-[200px]">
+                    <div className="text-center w-full">
+                      <div className="mb-4">{renderWord()}</div>
+
+                      {/* Hint Buttons */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleShowHint1}
+                            disabled={hint1Used}
+                            className="mb-2 bg-transparent"
+                          >
+                            <Lightbulb className="w-4 h-4 mr-1" />
+                            Hint 1 {hint1Used && "✓"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleShowHint2}
+                            disabled={hint2Used || !hint1Used}
+                            className="mb-2 bg-transparent"
+                          >
+                            <Lightbulb className="w-4 h-4 mr-1" />
+                            Hint 2 {hint2Used && "✓"}{" "}
+                            {!hint1Used &&
+                              hangmanConfig.scoring.hint2Penalty > 0 &&
+                              `(-${hangmanConfig.scoring.hint2Penalty})`}
+                          </Button>
+                        </div>
+
+                        {showHint1 && hint1Used && (
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                              💡 Hint 1: {currentWord.hints[0]}
+                            </p>
+                          </div>
+                        )}
+
+                        {showHint2 && hint2Used && (
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                              💡 Hint 2: {currentWord.hints[1]}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Game Status */}
+                    {isWordComplete && (
+                      <div className="text-center animate-in fade-in duration-500">
+                        <p className="text-2xl font-bold text-green-600">🎉 Correct!</p>
+                        <p className="text-sm text-muted-foreground">
+                          +{calculateScore()} points
+                          {(hint1Used || hint2Used) && (
+                            <span className="block text-green-500 text-xs">
+                              +{hangmanConfig.scoring.hintBonus} pts hint bonus!
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isGameLost && (
+                      <div className="text-center animate-in fade-in duration-500">
+                        <p className="text-2xl font-bold text-red-600">💀 Game Over!</p>
+                        <p className="text-lg">
+                          The word was: <span className="font-bold">{currentWord.word}</span>
+                        </p>
+                        {timeLeft <= 0 && (
+                          <p className="text-sm text-red-500">
+                            -{hangmanConfig.scoring.timeoutPenalty} pts timeout penalty
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hangman Drawing - Cell C */}
+                  <div className="col-span-1 flex flex-col items-center space-y-4">
+                    <HangmanDrawing wrongGuesses={wrongGuesses} maxWrongGuesses={maxWrongGuesses} />
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Wrong guesses: {wrongGuesses}/{maxWrongGuesses}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* On-Screen Keyboard */}
+                <div className="space-y-4">
+                  <h3 className="text-center font-semibold">Click letters or use your keyboard</h3>
+                  <OnScreenKeyboard
+                    onLetterClick={handleLetterGuess}
+                    guessedLetters={guessedLetters}
+                    disabled={isWordComplete || isGameLost}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {gameState === "roundComplete" && (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20 flex items-center justify-center">
+          <Card className="max-w-md shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">{isWordComplete ? "🎉 Round Complete!" : "💀 Round Failed!"}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div>
+                <p className="text-lg">
+                  Round {currentRound} of {hangmanConfig.gameSettings.roundsPerSession}
+                </p>
+                <p className="text-2xl font-bold">Score: {score}</p>
+              </div>
+              <Button onClick={nextRound} className="w-full" size="lg">
+                Next Round →
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {gameState === "gameComplete" && (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20 flex items-center justify-center">
+          <Card className="max-w-md shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl">🏆 Game Complete!</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-6">
+              <div>
+                <p className="text-4xl font-bold text-primary">{score}</p>
+                <p className="text-muted-foreground">Final Score</p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-lg">
+                  {score >= 1000 ? "🌟 Excellent!" : score >= 500 ? "👍 Good job!" : "💪 Keep practicing!"}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Button onClick={resetGame} className="w-full" size="lg">
+                  🎮 Play Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
+  )
+}
