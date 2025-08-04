@@ -50,11 +50,11 @@ export default function HangmanGame() {
   const isGameLost = wrongGuesses >= maxWrongGuesses || timeLeft <= 0
 
   // Calculate score based on configuration
-  const calculateScore = useCallback(() => {
+  const calculateScore = useCallback((wrongGuesses: number) => {
     if (!isWordComplete || isGameLost) return 0
 
     const { baseScore, timeBonus, timeBonusMultiplier, difficultyMultiplier } = difficultySettings
-    const { hintBonus, hint1Penalty, hint2Penalty } = hangmanConfig.scoring
+    const { hintBonus, hint1Penalty, hint2Penalty, wrongGuessPenalty } = hangmanConfig.scoring
 
     let finalScore = baseScore
 
@@ -74,6 +74,8 @@ export default function HangmanGame() {
     if (hint2Used) {
       finalScore -= hint2Penalty // This will be 0 (no penalty) or negative (penalty)
     }
+
+    finalScore -= wrongGuessPenalty * wrongGuesses;
 
     // Add hint bonus if any hints were used
     if (!hint1Used) {
@@ -124,9 +126,6 @@ export default function HangmanGame() {
 
       if (!currentWord.word.includes(letter)) {
         setWrongGuesses((prev) => prev + 1)
-        // Apply wrong guess penalty
-        const penalty = hangmanConfig.scoring.wrongGuessPenalty
-        setScore((prev) => Math.max(0, prev - penalty))
       }
     },
     [gameState, guessedLetters, currentWord.word],
@@ -157,7 +156,7 @@ export default function HangmanGame() {
   useEffect(() => {
     if (gameState === "playing" && (isWordComplete || isGameLost)) {
       if (isWordComplete && !isGameLost) {
-        const roundScore = calculateScore()
+        const roundScore = calculateScore(wrongGuesses)
         setScore((prev) => prev + roundScore)
       } else if (isGameLost && timeLeft <= 0) {
         // Apply timeout penalty
@@ -395,7 +394,7 @@ export default function HangmanGame() {
                       <div className="text-center animate-in fade-in duration-500">
                         <p className="text-2xl font-bold text-green-600">🎉 Correct!</p>
                         <p className="text-sm text-muted-foreground">
-                          +{calculateScore()} points
+                          +{calculateScore(wrongGuesses)} points
                           {(!hint1Used) && (
                             <span className="block text-green-500 text-xs">
                               +{hangmanConfig.scoring.hintBonus} pts no hint bonus!
