@@ -16,7 +16,7 @@ Your project is live at:
 
 **[https://vercel.com/bhanuteja917s-projects/v0-hangman-clone-requirements](https://vercel.com/bhanuteja917s-projects/v0-hangman-clone-requirements)**
 
-## Build your application
+## Build your app
 
 Continue building your app on:
 

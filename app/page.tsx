@@ -225,7 +225,7 @@ export default function HangmanGame() {
       <FloatingHeader
         logoSrc="/placeholder.svg?height=40&width=120&text=Your+Company"
         logoAlt="Your Company Logo"
-        companyName="Your Company"
+        companyName="UBS"
       />
 
       {gameState === "setup" && (
@@ -283,7 +283,7 @@ export default function HangmanGame() {
                     <li>• Higher difficulty = more points!</li>
                     <li>• Wrong guess penalty: -{hangmanConfig.scoring.wrongGuessPenalty} pts</li>
                     <li>• Timeout penalty: -{hangmanConfig.scoring.timeoutPenalty} pts</li>
-                    <li>• Hint bonus: +{hangmanConfig.scoring.hintBonus} pts (if any hints used)</li>
+                    <li>• Hint bonus: +{hangmanConfig.scoring.hintBonus} pts (if no hints used)</li>
                   </ul>
                 </div>
 
@@ -303,34 +303,34 @@ export default function HangmanGame() {
 
       {gameState === "playing" && (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20">
-          <div className="max-w-4xl mx-auto">
-            {/* Game Header */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-4">
-                <Badge variant="outline" className="text-lg px-3 py-1">
-                  <Target className="w-4 h-4 mr-1" />
-                  Round {currentRound}/{hangmanConfig.gameSettings.roundsPerSession}
-                </Badge>
-                <Badge variant="outline" className="text-lg px-3 py-1">
-                  <Trophy className="w-4 h-4 mr-1" />
-                  Score: {score}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                <span className={`text-2xl font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : ""}`}>
-                  {timeLeft}s
-                </span>
-              </div>
+          <div className="max-w-4xl mx-auto flex flex-col items-center my-auto">
+            {/* Centered Timer */}
+            <div className="flex items-center gap-2 mb-8">
+              <Clock className="w-8 h-8" />
+              <span className={`text-4xl font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : ""}`}>
+                {timeLeft}s
+              </span>
             </div>
 
             {/* Progress Bar */}
-            <div className="mb-6">
+            <div className="w-full max-w-md mb-6">
               <Progress value={(timeLeft / timePerQuestion) * 100} className="h-2" />
             </div>
 
-            {/* Main Game Card */}
-            <Card className="shadow-2xl">
+            {/* Game Info Badges */}
+            <div className="flex items-center gap-4 mb-6">
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                <Target className="w-4 h-4 mr-1" />
+                Round {currentRound}/{hangmanConfig.gameSettings.roundsPerSession}
+              </Badge>
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                <Trophy className="w-4 h-4 mr-1" />
+                Score: {score}
+              </Badge>
+            </div>
+
+            {/* Centered Main Game Card */}
+            <Card className="shadow-2xl w-full max-w-4xl">
               <CardHeader className="text-center">
                 <div className="flex justify-between items-center">
                   <Badge variant="secondary">{selectedCategory}</Badge>

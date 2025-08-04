@@ -8,8 +8,8 @@ interface FloatingHeaderProps {
 
 export function FloatingHeader({
   logoSrc = "/placeholder.svg?height=40&width=120&text=Company+Logo",
-  logoAlt = "Company Logo",
-  companyName = "UBS",
+  logoAlt = "Your Comapny",
+  companyName = "Your Company",
 }: FloatingHeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/20 dark:border-gray-700/20 shadow-sm">

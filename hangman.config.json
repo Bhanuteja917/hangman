@@ -190,7 +190,7 @@
     "hintBonus": 5,
     "hint1Penalty": 0,
     "hint2Penalty": 5,
-    "wrongGuessPenalty": 5,
+    "wrongGuessPenalty": 2,
     "timeoutPenalty": 0
   },
   "gameSettings": {
