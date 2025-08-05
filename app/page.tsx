@@ -35,6 +35,7 @@ export default function HangmanGame() {
   const [hint2Used, setHint2Used] = useState(false)
   const [showHint1, setShowHint1] = useState(false)
   const [showHint2, setShowHint2] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
 
   const difficultySettings = selectedDifficulty
     ? hangmanConfig.difficulty[selectedDifficulty as keyof typeof hangmanConfig.difficulty]
@@ -50,7 +51,7 @@ export default function HangmanGame() {
   const isGameLost = wrongGuesses >= maxWrongGuesses || timeLeft <= 0
 
   // Calculate score based on configuration
-  const calculateScore = useCallback((wrongGuesses: number) => {
+  const calculateScore = useCallback(() => {
     if (!isWordComplete || isGameLost) return 0
 
     const { baseScore, timeBonus, timeBonusMultiplier, difficultyMultiplier } = difficultySettings
@@ -75,12 +76,14 @@ export default function HangmanGame() {
       finalScore -= hint2Penalty // This will be 0 (no penalty) or negative (penalty)
     }
 
-    finalScore -= wrongGuessPenalty * wrongGuesses;
-
-    // Add hint bonus if any hints were used
+    // Add hint bonus if no hints were used
     if (!hint1Used) {
       finalScore += hintBonus
     }
+
+    // Subtract wrong guess penalty (multiply wrong guesses by penalty)
+    const wrongGuessPenaltyTotal = wrongGuesses * wrongGuessPenalty
+    finalScore -= wrongGuessPenaltyTotal
 
     return Math.max(0, finalScore) // Ensure score doesn't go negative
   }, [isWordComplete, isGameLost, timeLeft, timePerQuestion, difficultySettings, hint1Used, hint2Used])
@@ -156,7 +159,7 @@ export default function HangmanGame() {
   useEffect(() => {
     if (gameState === "playing" && (isWordComplete || isGameLost)) {
       if (isWordComplete && !isGameLost) {
-        const roundScore = calculateScore(wrongGuesses)
+        const roundScore = calculateScore()
         setScore((prev) => prev + roundScore)
       } else if (isGameLost && timeLeft <= 0) {
         // Apply timeout penalty
@@ -182,10 +185,14 @@ export default function HangmanGame() {
     startNewRound()
   }
 
-  // Next round
+  // Next round with animation
   const nextRound = () => {
-    setCurrentRound((prev) => prev + 1)
-    startNewRound()
+    setIsExiting(true)
+    setTimeout(() => {
+      setCurrentRound((prev) => prev + 1)
+      setIsExiting(false)
+      startNewRound()
+    }, 700) // Match the animation duration
   }
 
   // Reset game
@@ -280,7 +287,7 @@ export default function HangmanGame() {
                     <li>• Guess letters using keyboard or on-screen buttons</li>
                     <li>• Complete words before time runs out</li>
                     <li>• Higher difficulty = more points!</li>
-                    <li>• Wrong guess penalty: -{hangmanConfig.scoring.wrongGuessPenalty} pts</li>
+                    <li>• Wrong guess penalty: -{hangmanConfig.scoring.wrongGuessPenalty} pts per wrong guess</li>
                     <li>• Timeout penalty: -{hangmanConfig.scoring.timeoutPenalty} pts</li>
                     <li>• Hint bonus: +{hangmanConfig.scoring.hintBonus} pts (if no hints used)</li>
                   </ul>
@@ -394,8 +401,13 @@ export default function HangmanGame() {
                       <div className="text-center animate-in fade-in duration-500">
                         <p className="text-2xl font-bold text-green-600">🎉 Correct!</p>
                         <p className="text-sm text-muted-foreground">
-                          +{calculateScore(wrongGuesses)} points
-                          {(!hint1Used) && (
+                          +{calculateScore()} points
+                          {wrongGuesses > 0 && (
+                            <span className="block text-red-500 text-xs">
+                              -{wrongGuesses * hangmanConfig.scoring.wrongGuessPenalty} pts wrong guess penalty
+                            </span>
+                          )}
+                          {!hint1Used && (
                             <span className="block text-green-500 text-xs">
                               +{hangmanConfig.scoring.hintBonus} pts no hint bonus!
                             </span>
@@ -415,6 +427,11 @@ export default function HangmanGame() {
                             -{hangmanConfig.scoring.timeoutPenalty} pts timeout penalty
                           </p>
                         )}
+                        {wrongGuesses > 0 && (
+                          <p className="text-sm text-red-500">
+                            -{wrongGuesses * hangmanConfig.scoring.wrongGuessPenalty} pts wrong guess penalty
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -425,6 +442,9 @@ export default function HangmanGame() {
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground">
                         Wrong guesses: {wrongGuesses}/{maxWrongGuesses}
+                      </p>
+                      <p className="text-xs text-red-500">
+                        Total wrong: {wrongGuesses} (-{wrongGuesses * hangmanConfig.scoring.wrongGuessPenalty} pts)
                       </p>
                     </div>
                   </div>
@@ -446,51 +466,84 @@ export default function HangmanGame() {
       )}
 
       {gameState === "roundComplete" && (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20 flex items-center justify-center">
-          <Card className="max-w-md shadow-2xl">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{isWordComplete ? "🎉 Round Complete!" : "💀 Round Failed!"}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <div>
-                <p className="text-lg">
-                  Round {currentRound} of {hangmanConfig.gameSettings.roundsPerSession}
+        <div
+          className={`fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50 ${
+            isExiting
+              ? "animate-out slide-out-to-bottom-full duration-700 ease-in"
+              : "animate-in slide-in-from-top-full duration-700 ease-out"
+          }`}
+        >
+          <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-8">
+            <div className="space-y-12">
+              <p className="text-lg text-muted-foreground font-medium">
+                Round {currentRound}/{hangmanConfig.gameSettings.roundsPerSession}
+              </p>
+
+              <div className="space-y-4">
+                <p className="text-2xl text-foreground font-medium">{isWordComplete ? "Correct!" : "Missed"}</p>
+                <h1 className="text-6xl font-bold text-foreground leading-tight">{currentWord.word.toLowerCase()}</h1>
+                <p className="text-xl text-muted-foreground">
+                  {isWordComplete ? `+${calculateScore()} points` : "Better luck next time"}
                 </p>
-                <p className="text-2xl font-bold">Score: {score}</p>
               </div>
-              <Button onClick={nextRound} className="w-full" size="lg">
-                Next Round →
-              </Button>
-            </CardContent>
-          </Card>
+
+              <div className="pt-8">
+                <Button onClick={nextRound} className="px-8 py-3 text-lg font-medium rounded-lg shadow-lg" size="lg">
+                  {currentRound >= hangmanConfig.gameSettings.roundsPerSession ? "Final Results" : "Next Round"}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {gameState === "gameComplete" && (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-20 flex items-center justify-center">
-          <Card className="max-w-md shadow-2xl">
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl">🏆 Game Complete!</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <div>
-                <p className="text-4xl font-bold text-primary">{score}</p>
-                <p className="text-muted-foreground">Final Score</p>
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50 animate-in slide-in-from-top-full duration-700 ease-out">
+          <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-8xl mb-4">🏆</h1>
+              <h2 className="text-6xl font-bold text-foreground mb-4">Game Complete!</h2>
+              <p className="text-2xl text-muted-foreground">
+                You've completed all {hangmanConfig.gameSettings.roundsPerSession} rounds!
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <p className="text-9xl font-bold text-primary">{score}</p>
+                <p className="text-3xl text-muted-foreground">Final Score</p>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-lg">
-                  {score >= 1000 ? "🌟 Excellent!" : score >= 500 ? "👍 Good job!" : "💪 Keep practicing!"}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-10 rounded-2xl border border-blue-200 dark:border-blue-800 max-w-3xl">
+                <p className="text-3xl mb-6">
+                  {score >= 1000 ? "🌟 Excellent Performance!" : score >= 500 ? "👍 Good Job!" : "💪 Keep Practicing!"}
                 </p>
+                <div className="grid grid-cols-2 gap-8 text-lg">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{selectedCategory}</p>
+                    <p className="text-muted-foreground">Category</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{selectedDifficulty}</p>
+                    <p className="text-muted-foreground">Difficulty</p>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Button onClick={resetGame} className="w-full" size="lg">
-                  🎮 Play Again
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="space-y-4">
+              <Button onClick={resetGame} className="text-2xl py-8 px-12 rounded-2xl" size="lg">
+                🎮 Play Again
+              </Button>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="text-xl py-6 px-10 rounded-2xl"
+              >
+                🏠 Back to Home
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </>
