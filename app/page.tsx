@@ -230,7 +230,7 @@ export default function HangmanGame() {
     const baseClasses =
       "fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50"
     const animationClasses = isExiting
-      ? "animate-out slide-out-to-bottom-full duration-700 ease-in"
+      ? "animate-out slide-out-to-top-full duration-700 ease-in"
       : "animate-in slide-in-from-top-full duration-700 ease-out"
     return `${baseClasses} ${animationClasses}`
   }
