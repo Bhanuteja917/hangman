@@ -175,7 +175,7 @@ export default function HangmanGame() {
         } else {
           setGameState("roundComplete")
         }
-      }, 2000)
+      }, 250)
     }
   }, [gameState, isWordComplete, isGameLost, timeLeft, currentRound, calculateScore])
 
@@ -247,8 +247,8 @@ export default function HangmanGame() {
     const baseClasses =
       "fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50"
     const animationClasses = isExiting
-      ? "animate-out slide-out-to-top-full duration-700 ease-in"
-      : "animate-in slide-in-from-top-full duration-700 ease-out"
+      ? "animate-out slide-out-to-top-full duration-1000 ease-out"
+      : "animate-in slide-in-from-bottom-full duration-700 ease-in"
     return `${baseClasses} ${animationClasses}`
   }
 
@@ -270,7 +270,7 @@ export default function HangmanGame() {
             <Card className="shadow-2xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  🎯 Hangman Game
+                  Hangman Game
                 </CardTitle>
                 <p className="text-muted-foreground mt-2">Guess the word before time runs out!</p>
               </CardHeader>
@@ -320,7 +320,6 @@ export default function HangmanGame() {
                     <li>• Wrong guess penalty: -{hangmanConfig.scoring.wrongGuessPenalty} pts per wrong guess</li>
                     <li>• Timeout penalty: -{hangmanConfig.scoring.timeoutPenalty} pts</li>
                     <li>• Hint bonus: +{hangmanConfig.scoring.hintBonus} pts (if no hints used)</li>
-                    <li>• 🎉 Confetti celebration for high scores!</li>
                   </ul>
                 </div>
 
@@ -427,7 +426,7 @@ export default function HangmanGame() {
                       </div>
                     </div>
 
-                    {/* Game Status */}
+                    {/* Game Status
                     {isWordComplete && (
                       <div className="text-center animate-in fade-in duration-500">
                         <p className="text-2xl font-bold text-green-600">🎉 Correct!</p>
@@ -464,7 +463,7 @@ export default function HangmanGame() {
                           </p>
                         )}
                       </div>
-                    )}
+                    )} */}
                   </div>
 
                   {/* Hangman Drawing - Cell C */}
@@ -483,7 +482,6 @@ export default function HangmanGame() {
 
                 {/* On-Screen Keyboard */}
                 <div className="space-y-4">
-                  <h3 className="text-center font-semibold">Click letters or use your keyboard</h3>
                   <OnScreenKeyboard
                     onLetterClick={handleLetterGuess}
                     guessedLetters={guessedLetters}
@@ -531,23 +529,9 @@ export default function HangmanGame() {
               <div className="space-y-4">
                 <p className="text-2xl text-foreground font-medium">Final Score</p>
                 <h1 className="text-6xl font-bold text-foreground leading-tight">{score}</h1>
-                <p className="text-xl text-muted-foreground">
-                  {score >= difficultySettings.confettiThreshold ? (
-                    <>🎉 Amazing! You earned confetti! 🎉</>
-                  ) : score >= 1000 ? (
-                    "🌟 Excellent Performance!"
-                  ) : score >= 500 ? (
-                    "👍 Good Job!"
-                  ) : (
-                    "💪 Keep Practicing!"
-                  )}
+                <p className="text-sm text-muted-foreground">
+                  You scored {score} points
                 </p>
-                {score >= difficultySettings.confettiThreshold && (
-                  <p className="text-sm text-muted-foreground">
-                    You scored {score} points, above the {difficultySettings.confettiThreshold} point threshold for{" "}
-                    {selectedDifficulty} difficulty!
-                  </p>
-                )}
               </div>
 
               <div className="pt-8">
