@@ -167,7 +167,8 @@
       "baseScore": 10,
       "timeBonus": false,
       "timeBonusMultiplier": 1.0,
-      "difficultyMultiplier": 1
+      "difficultyMultiplier": 1,
+      "confettiThreshold": 30
     },
     "Medium": {
       "timePerQuestion": 30,
@@ -175,7 +176,8 @@
       "baseScore": 15,
       "timeBonus": false,
       "timeBonusMultiplier": 1.25,
-      "difficultyMultiplier": 1
+      "difficultyMultiplier": 1,
+      "confettiThreshold": 50
     },
     "Hard": {
       "timePerQuestion": 25,
@@ -183,14 +185,15 @@
       "baseScore": 20,
       "timeBonus": false,
       "timeBonusMultiplier": 1.5,
-      "difficultyMultiplier": 1
+      "difficultyMultiplier": 1,
+      "confettiThreshold": 70
     }
   },
   "scoring": {
     "hintBonus": 5,
     "hint1Penalty": 0,
     "hint2Penalty": 5,
-    "wrongGuessPenalty":1,
+    "wrongGuessPenalty": 1,
     "timeoutPenalty": 0
   },
   "gameSettings": {

@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { HangmanDrawing } from "@/components/hangman-drawing"
 import { OnScreenKeyboard } from "@/components/on-screen-keyboard"
 import { FloatingHeader } from "@/components/floating-header"
+import { Confetti } from "@/components/confetti"
 import { Clock, Trophy, Target, Lightbulb } from "lucide-react"
 import hangmanConfig from "../hangman.config.json"
 
@@ -36,6 +37,7 @@ export default function HangmanGame() {
   const [showHint1, setShowHint1] = useState(false)
   const [showHint2, setShowHint2] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const difficultySettings = selectedDifficulty
     ? hangmanConfig.difficulty[selectedDifficulty as keyof typeof hangmanConfig.difficulty]
@@ -86,7 +88,7 @@ export default function HangmanGame() {
     finalScore -= wrongGuessPenaltyTotal
 
     return Math.max(0, finalScore) // Ensure score doesn't go negative
-  }, [isWordComplete, isGameLost, timeLeft, timePerQuestion, difficultySettings, hint1Used, hint2Used])
+  }, [isWordComplete, isGameLost, timeLeft, timePerQuestion, difficultySettings, hint1Used, hint2Used, wrongGuesses])
 
   // Get a random word from selected category
   const getRandomWord = useCallback(() => {
@@ -177,11 +179,25 @@ export default function HangmanGame() {
     }
   }, [gameState, isWordComplete, isGameLost, timeLeft, currentRound, calculateScore])
 
+  // Check for confetti when game completes
+  useEffect(() => {
+    if (gameState === "gameComplete") {
+      const confettiThreshold = difficultySettings.confettiThreshold
+      if (score >= confettiThreshold) {
+        // Delay confetti slightly to let the overlay animate in
+        setTimeout(() => {
+          setShowConfetti(true)
+        }, 500)
+      }
+    }
+  }, [gameState, score, difficultySettings.confettiThreshold])
+
   // Start game
   const startGame = () => {
     setCurrentRound(1)
     setScore(0)
     setUsedWords(new Set())
+    setShowConfetti(false)
     startNewRound()
   }
 
@@ -203,6 +219,7 @@ export default function HangmanGame() {
     setCurrentRound(1)
     setScore(0)
     setUsedWords(new Set())
+    setShowConfetti(false)
   }
 
   // Render word with guessed letters
@@ -237,6 +254,9 @@ export default function HangmanGame() {
 
   return (
     <>
+      {/* Confetti Animation */}
+      <Confetti active={showConfetti} duration={4000} />
+
       {/* Floating Header */}
       <FloatingHeader
         logoSrc="/placeholder.svg?height=40&width=120&text=Your+Company"
@@ -282,7 +302,7 @@ export default function HangmanGame() {
                         {Object.entries(hangmanConfig.difficulty).map(([level, settings]) => (
                           <SelectItem key={level} value={level}>
                             {level} (Base: {settings.baseScore} pts, {settings.timePerQuestion}s,{" "}
-                            {settings.maxWrongGuesses} wrong guesses)
+                            {settings.maxWrongGuesses} wrong guesses, Confetti: {settings.confettiThreshold}+ pts)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -300,6 +320,7 @@ export default function HangmanGame() {
                     <li>• Wrong guess penalty: -{hangmanConfig.scoring.wrongGuessPenalty} pts per wrong guess</li>
                     <li>• Timeout penalty: -{hangmanConfig.scoring.timeoutPenalty} pts</li>
                     <li>• Hint bonus: +{hangmanConfig.scoring.hintBonus} pts (if no hints used)</li>
+                    <li>• 🎉 Confetti celebration for high scores!</li>
                   </ul>
                 </div>
 
@@ -502,50 +523,42 @@ export default function HangmanGame() {
       )}
 
       {gameState === "gameComplete" && (
-        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50 animate-in slide-in-from-top-full duration-700 ease-out">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-40 animate-in slide-in-from-top-full duration-700 ease-out">
           <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-8xl mb-4">🏆</h1>
-              <h2 className="text-6xl font-bold text-foreground mb-4">Game Complete!</h2>
-              <p className="text-2xl text-muted-foreground">
-                You've completed all {hangmanConfig.gameSettings.roundsPerSession} rounds!
-              </p>
-            </div>
+            <div className="space-y-12">
+              <p className="text-lg text-muted-foreground font-medium">Game Complete</p>
 
-            <div className="space-y-8">
               <div className="space-y-4">
-                <p className="text-9xl font-bold text-primary">{score}</p>
-                <p className="text-3xl text-muted-foreground">Final Score</p>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-10 rounded-2xl border border-blue-200 dark:border-blue-800 max-w-3xl">
-                <p className="text-3xl mb-6">
-                  {score >= 1000 ? "🌟 Excellent Performance!" : score >= 500 ? "👍 Good Job!" : "💪 Keep Practicing!"}
+                <p className="text-2xl text-foreground font-medium">Final Score</p>
+                <h1 className="text-6xl font-bold text-foreground leading-tight">{score}</h1>
+                <p className="text-xl text-muted-foreground">
+                  {score >= difficultySettings.confettiThreshold ? (
+                    <>🎉 Amazing! You earned confetti! 🎉</>
+                  ) : score >= 1000 ? (
+                    "🌟 Excellent Performance!"
+                  ) : score >= 500 ? (
+                    "👍 Good Job!"
+                  ) : (
+                    "💪 Keep Practicing!"
+                  )}
                 </p>
-                <div className="grid grid-cols-2 gap-8 text-lg">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{selectedCategory}</p>
-                    <p className="text-muted-foreground">Category</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{selectedDifficulty}</p>
-                    <p className="text-muted-foreground">Difficulty</p>
-                  </div>
-                </div>
+                {score >= difficultySettings.confettiThreshold && (
+                  <p className="text-sm text-muted-foreground">
+                    You scored {score} points, above the {difficultySettings.confettiThreshold} point threshold for{" "}
+                    {selectedDifficulty} difficulty!
+                  </p>
+                )}
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <Button onClick={resetGame} className="text-2xl py-8 px-12 rounded-2xl" size="lg">
-                🎮 Play Again
-              </Button>
-              <Button
-                onClick={() => window.location.reload()}
-                variant="outline"
-                className="text-xl py-6 px-10 rounded-2xl"
-              >
-                🏠 Back to Home
-              </Button>
+              <div className="pt-8">
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="px-8 py-3 text-lg font-medium rounded-lg shadow-lg"
+                  size="lg"
+                >
+                  🏠 Back to Home
+                </Button>
+              </div>
             </div>
           </div>
         </div>
