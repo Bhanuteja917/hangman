@@ -225,6 +225,16 @@ export default function HangmanGame() {
     setShowHint2(true)
   }
 
+  // Get animation classes for round complete overlay
+  const getRoundCompleteClasses = () => {
+    const baseClasses =
+      "fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50"
+    const animationClasses = isExiting
+      ? "animate-out slide-out-to-bottom-full duration-700 ease-in"
+      : "animate-in slide-in-from-top-full duration-700 ease-out"
+    return `${baseClasses} ${animationClasses}`
+  }
+
   return (
     <>
       {/* Floating Header */}
@@ -466,13 +476,7 @@ export default function HangmanGame() {
       )}
 
       {gameState === "roundComplete" && (
-        <div
-          className={`fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center z-50 ${
-            isExiting
-              ? "animate-out slide-out-to-bottom-full duration-700 ease-in"
-              : "animate-in slide-in-from-top-full duration-700 ease-out"
-          }`}
-        >
+        <div className={getRoundCompleteClasses()}>
           <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-8">
             <div className="space-y-12">
               <p className="text-lg text-muted-foreground font-medium">
