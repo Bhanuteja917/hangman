@@ -66,14 +66,11 @@
     "Movies": [
       {
         "word": "TITANIC",
-        "hints": [
-          "Epic romance about a doomed ship",
-          "Leonardo DiCaprio and Kate Winslet with famous line 'I'm the king of the world!'"
-        ]
+        "hints": ["Famous disaster movie", "Leonardo DiCaprio starred in it"]
       },
       {
         "word": "AVATAR",
-        "hints": ["Blue aliens on Pandora", "James Cameron sci-fi epic featuring the Na'vi people"]
+        "hints": ["Sci-fi movie about blue aliens", "Highest grossing film"]
       },
       {
         "word": "INCEPTION",
@@ -89,7 +86,7 @@
       },
       {
         "word": "FROZEN",
-        "hints": ["Let it go, let it go", "Disney animated movie about sisters Elsa and Anna with ice powers"]
+        "hints": ["Disney animated movie", "Let it go is a famous song"]
       },
       {
         "word": "JAWS",
@@ -106,12 +103,20 @@
       {
         "word": "CASABLANCA",
         "hints": ["Here's looking at you, kid", "Classic WWII film with Humphrey Bogart and Ingrid Bergman in Morocco"]
+      },
+      {
+        "word": "BATMAN",
+        "hints": ["Superhero movie", "Dark Knight of Gotham"]
+      },
+      {
+        "word": "STARWARS",
+        "hints": ["Space opera franchise", "May the force be with you"]
       }
     ],
     "Programming Terms": [
       {
         "word": "ALGORITHM",
-        "hints": ["Step-by-step problem-solving procedure", "Set of rules used in computer science and mathematics"]
+        "hints": ["A step-by-step procedure for solving a problem", "Essential in computer science"]
       },
       {
         "word": "VARIABLE",
@@ -158,34 +163,96 @@
           "Defines properties and methods, key concept in object-oriented programming"
         ]
       }
+    ],
+    "Technology": [
+      { "word": "JAVASCRIPT", "hints": ["A popular programming language", "Used for web development"] },
+      { "word": "COMPUTER", "hints": ["Electronic device for processing data", "Has a keyboard and screen"] },
+      { "word": "INTERNET", "hints": ["Global network of computers", "World Wide Web"] },
+      { "word": "SOFTWARE", "hints": ["Computer programs and applications", "Opposite of hardware"] },
+      { "word": "DATABASE", "hints": ["Organized collection of data", "SQL is used to query it"] }
+    ],
+    "Animals": [
+      { "word": "ELEPHANT", "hints": ["Largest land mammal", "Has a long trunk"] },
+      { "word": "GIRAFFE", "hints": ["Tallest animal in the world", "Has a very long neck"] },
+      { "word": "PENGUIN", "hints": ["Flightless bird", "Lives in cold climates"] },
+      { "word": "DOLPHIN", "hints": ["Intelligent marine mammal", "Known for jumping out of water"] },
+      { "word": "KANGAROO", "hints": ["Hops on two legs", "Carries babies in a pouch"] },
+      { "word": "BUTTERFLY", "hints": ["Colorful flying insect", "Goes through metamorphosis"] },
+      { "word": "OCTOPUS", "hints": ["Sea creature with eight arms", "Very intelligent invertebrate"] },
+      { "word": "CHEETAH", "hints": ["Fastest land animal", "Has spotted fur"] }
+    ],
+    "Countries": [
+      { "word": "AUSTRALIA", "hints": ["Island continent", "Home to kangaroos and koalas"] },
+      { "word": "BRAZIL", "hints": ["Largest country in South America", "Famous for carnival and soccer"] },
+      { "word": "CANADA", "hints": ["Second largest country by area", "Known for maple syrup"] },
+      { "word": "EGYPT", "hints": ["Home to ancient pyramids", "Located in North Africa"] },
+      { "word": "FRANCE", "hints": ["Famous for the Eiffel Tower", "Known for wine and cheese"] },
+      { "word": "JAPAN", "hints": ["Island nation in East Asia", "Known for sushi and technology"] },
+      { "word": "MEXICO", "hints": ["North American country", "Famous for tacos and ancient Aztec ruins"] },
+      { "word": "NORWAY", "hints": ["Scandinavian country", "Famous for fjords and northern lights"] }
+    ],
+    "Food": [
+      { "word": "PIZZA", "hints": ["Italian dish with toppings", "Round and flat bread"] },
+      { "word": "CHOCOLATE", "hints": ["Sweet treat made from cocoa", "Popular dessert ingredient"] },
+      { "word": "SANDWICH", "hints": ["Food between two pieces of bread", "Popular lunch item"] },
+      { "word": "SPAGHETTI", "hints": ["Long thin pasta", "Often served with sauce"] },
+      { "word": "HAMBURGER", "hints": ["Ground meat patty in a bun", "Popular fast food"] }
+    ],
+    "Sports": [
+      { "word": "BASKETBALL", "hints": ["Sport with hoops and a ball", "Played on a court"] },
+      { "word": "FOOTBALL", "hints": ["Sport with goals and a ball", "Most popular sport worldwide"] },
+      { "word": "TENNIS", "hints": ["Racket sport", "Played on a court with a net"] },
+      { "word": "SWIMMING", "hints": ["Water sport", "Olympic event with different strokes"] },
+      { "word": "BASEBALL", "hints": ["Sport with bases and a bat", "America's pastime"] }
+    ],
+    "Science": [
+      { "word": "GRAVITY", "hints": ["Force that pulls objects down", "Discovered by Newton"] },
+      { "word": "OXYGEN", "hints": ["Gas we breathe", "Chemical symbol is O"] },
+      { "word": "MOLECULE", "hints": ["Smallest unit of a compound", "Made of atoms"] },
+      { "word": "TELESCOPE", "hints": ["Instrument for viewing distant objects", "Used in astronomy"] },
+      { "word": "EVOLUTION", "hints": ["Process of species change over time", "Darwin's theory"] }
+    ],
+    "Geography": [
+      { "word": "MOUNTAIN", "hints": ["High elevation landform", "Everest is the tallest"] },
+      { "word": "OCEAN", "hints": ["Large body of salt water", "Pacific is the largest"] },
+      { "word": "DESERT", "hints": ["Dry, arid region", "Sahara is the largest hot one"] },
+      { "word": "CONTINENT", "hints": ["Large landmass", "There are seven of them"] },
+      { "word": "VOLCANO", "hints": ["Mountain that can erupt", "Spews lava and ash"] }
+    ],
+    "History": [
+      { "word": "PYRAMID", "hints": ["Ancient Egyptian structure", "Built as tombs for pharaohs"] },
+      { "word": "CASTLE", "hints": ["Medieval fortified building", "Home to kings and queens"] },
+      { "word": "REVOLUTION", "hints": ["Major political change", "American and French are famous ones"] },
+      { "word": "EMPIRE", "hints": ["Large political territory", "Roman was one of the greatest"] },
+      { "word": "CIVILIZATION", "hints": ["Advanced human society", "Ancient Greece was one"] }
     ]
   },
   "difficulty": {
     "Easy": {
+      "baseScore": 10,
       "timePerQuestion": 45,
       "maxWrongGuesses": 8,
-      "baseScore": 10,
-      "timeBonus": false,
-      "timeBonusMultiplier": 1.0,
+      "timeBonus": true,
+      "timeBonusMultiplier": 0.5,
       "difficultyMultiplier": 1,
       "confettiThreshold": 30
     },
     "Medium": {
-      "timePerQuestion": 30,
+      "baseScore": 20,
+      "timePerQuestion": 35,
       "maxWrongGuesses": 6,
-      "baseScore": 15,
-      "timeBonus": false,
-      "timeBonusMultiplier": 1.25,
-      "difficultyMultiplier": 1,
+      "timeBonus": true,
+      "timeBonusMultiplier": 0.7,
+      "difficultyMultiplier": 1.5,
       "confettiThreshold": 50
     },
     "Hard": {
+      "baseScore": 30,
       "timePerQuestion": 25,
       "maxWrongGuesses": 4,
-      "baseScore": 20,
-      "timeBonus": false,
-      "timeBonusMultiplier": 1.5,
-      "difficultyMultiplier": 1,
+      "timeBonus": true,
+      "timeBonusMultiplier": 1,
+      "difficultyMultiplier": 2,
       "confettiThreshold": 70
     }
   },
@@ -193,8 +260,8 @@
     "hintBonus": 5,
     "hint1Penalty": 0,
     "hint2Penalty": 5,
-    "wrongGuessPenalty": 1,
-    "timeoutPenalty": 0
+    "wrongGuessPenalty": 2,
+    "timeoutPenalty": 10
   },
   "gameSettings": {
     "roundsPerSession": 5

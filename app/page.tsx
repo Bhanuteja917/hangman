@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -10,7 +11,8 @@ import { HangmanDrawing } from "@/components/hangman-drawing"
 import { OnScreenKeyboard } from "@/components/on-screen-keyboard"
 import { FloatingHeader } from "@/components/floating-header"
 import { Confetti } from "@/components/confetti"
-import { Clock, Trophy, Target, Lightbulb } from "lucide-react"
+import { LeaderboardOverlay, type LeaderboardEntry } from "@/components/leaderboard-overlay"
+import { Clock, Trophy, Target, Lightbulb, User } from "lucide-react"
 import hangmanConfig from "../hangman.config.json"
 
 type GameState = "setup" | "playing" | "roundComplete" | "gameComplete"
@@ -20,6 +22,7 @@ export default function HangmanGame() {
   // Game setup state
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("")
+  const [userGpn, setUserGpn] = useState<string>("")
   const [gameState, setGameState] = useState<GameState>("setup")
 
   // Game state
@@ -39,12 +42,46 @@ export default function HangmanGame() {
   const [isExiting, setIsExiting] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
 
+  // Leaderboard state
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([])
+  const [gameStartTime, setGameStartTime] = useState<number>(0)
+  const [gamesPlayedCount, setGamesPlayedCount] = useState<number>(0)
+
   const difficultySettings = selectedDifficulty
     ? hangmanConfig.difficulty[selectedDifficulty as keyof typeof hangmanConfig.difficulty]
     : hangmanConfig.difficulty.Easy
 
   const maxWrongGuesses = difficultySettings.maxWrongGuesses
   const timePerQuestion = difficultySettings.timePerQuestion
+
+  // Load leaderboard data from localStorage on component mount
+  useEffect(() => {
+    const savedEntries = localStorage.getItem("hangman-leaderboard")
+    const savedGamesCount = localStorage.getItem("hangman-games-count")
+
+    if (savedEntries) {
+      try {
+        setLeaderboardEntries(JSON.parse(savedEntries))
+      } catch (error) {
+        console.error("Error loading leaderboard:", error)
+      }
+    }
+
+    if (savedGamesCount) {
+      setGamesPlayedCount(Number.parseInt(savedGamesCount, 10))
+    }
+  }, [])
+
+  // Save leaderboard data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("hangman-leaderboard", JSON.stringify(leaderboardEntries))
+  }, [leaderboardEntries])
+
+  // Save games count to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("hangman-games-count", gamesPlayedCount.toString())
+  }, [gamesPlayedCount])
 
   // Check if word is complete
   const isWordComplete = currentWord.word.split("").every((letter) => letter === " " || guessedLetters.has(letter))
@@ -189,8 +226,34 @@ export default function HangmanGame() {
           setShowConfetti(true)
         }, 500)
       }
+
+      // Add entry to leaderboard
+      const gameEndTime = Date.now()
+      const timeTaken = Math.floor((gameEndTime - gameStartTime) / 1000)
+      const newGpn = Number.parseInt(userGpn, 10) || gamesPlayedCount + 1
+
+      const newEntry: LeaderboardEntry = {
+        gpn: newGpn,
+        timeTaken,
+        score,
+        date: new Date().toISOString(),
+        difficulty: selectedDifficulty,
+        category: selectedCategory,
+      }
+
+      setLeaderboardEntries((prev) => [...prev, newEntry])
+      setGamesPlayedCount(newGpn)
     }
-  }, [gameState, score, difficultySettings.confettiThreshold])
+  }, [
+    gameState,
+    score,
+    difficultySettings.confettiThreshold,
+    gameStartTime,
+    gamesPlayedCount,
+    selectedDifficulty,
+    selectedCategory,
+    userGpn,
+  ])
 
   // Start game
   const startGame = () => {
@@ -198,6 +261,7 @@ export default function HangmanGame() {
     setScore(0)
     setUsedWords(new Set())
     setShowConfetti(false)
+    setGameStartTime(Date.now())
     startNewRound()
   }
 
@@ -216,6 +280,7 @@ export default function HangmanGame() {
     setGameState("setup")
     setSelectedCategory("")
     setSelectedDifficulty("")
+    setUserGpn("")
     setCurrentRound(1)
     setScore(0)
     setUsedWords(new Set())
@@ -257,11 +322,19 @@ export default function HangmanGame() {
       {/* Confetti Animation */}
       <Confetti active={showConfetti} duration={4000} />
 
+      {/* Leaderboard Overlay */}
+      <LeaderboardOverlay
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        entries={leaderboardEntries}
+      />
+
       {/* Floating Header */}
       <FloatingHeader
         logoSrc="/placeholder.svg?height=40&width=120&text=Your+Company"
         logoAlt="Your Company Logo"
         companyName="UBS"
+        onLeaderboardClick={() => setShowLeaderboard(true)}
       />
 
       {gameState === "setup" && (
@@ -277,6 +350,20 @@ export default function HangmanGame() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <label className="text-sm font-medium ml-1 mb-0 flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      User GPN (ID)
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter your GPN/User ID..."
+                      value={userGpn}
+                      onChange={(e) => setUserGpn(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="text-sm font-medium ml-1 mb-0">Select Category</label>
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                       <SelectTrigger className="w-full mt-px">
@@ -291,23 +378,23 @@ export default function HangmanGame() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium ml-1">Select Difficulty</label>
-                    <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose difficulty..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(hangmanConfig.difficulty).map(([level, settings]) => (
-                          <SelectItem key={level} value={level}>
-                            {level} (Base: {settings.baseScore} pts, {settings.timePerQuestion}s,{" "}
-                            {settings.maxWrongGuesses} wrong guesses, Confetti: {settings.confettiThreshold}+ pts)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium ml-1">Select Difficulty</label>
+                  <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose difficulty..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(hangmanConfig.difficulty).map(([level, settings]) => (
+                        <SelectItem key={level} value={level}>
+                          {level} (Base: {settings.baseScore} pts, {settings.timePerQuestion}s,{" "}
+                          {settings.maxWrongGuesses} wrong guesses, Confetti: {settings.confettiThreshold}+ pts)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="bg-muted p-4 rounded-lg">
@@ -325,7 +412,7 @@ export default function HangmanGame() {
 
                 <Button
                   onClick={startGame}
-                  disabled={!selectedCategory || !selectedDifficulty}
+                  disabled={!selectedCategory || !selectedDifficulty || !userGpn.trim()}
                   className="w-full text-lg py-6"
                   size="lg"
                 >
@@ -355,6 +442,10 @@ export default function HangmanGame() {
 
             {/* Game Info Badges */}
             <div className="flex items-center gap-4 mb-6">
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                <User className="w-4 h-4 mr-1" />
+                GPN: {userGpn}
+              </Badge>
               <Badge variant="outline" className="text-lg px-3 py-1">
                 <Target className="w-4 h-4 mr-1" />
                 Round {currentRound}/{hangmanConfig.gameSettings.roundsPerSession}
@@ -425,45 +516,6 @@ export default function HangmanGame() {
                         )}
                       </div>
                     </div>
-
-                    {/* Game Status
-                    {isWordComplete && (
-                      <div className="text-center animate-in fade-in duration-500">
-                        <p className="text-2xl font-bold text-green-600">🎉 Correct!</p>
-                        <p className="text-sm text-muted-foreground">
-                          +{calculateScore()} points
-                          {wrongGuesses > 0 && (
-                            <span className="block text-red-500 text-xs">
-                              -{wrongGuesses * hangmanConfig.scoring.wrongGuessPenalty} pts wrong guess penalty
-                            </span>
-                          )}
-                          {!hint1Used && (
-                            <span className="block text-green-500 text-xs">
-                              +{hangmanConfig.scoring.hintBonus} pts no hint bonus!
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isGameLost && (
-                      <div className="text-center animate-in fade-in duration-500">
-                        <p className="text-2xl font-bold text-red-600">💀 Game Over!</p>
-                        <p className="text-lg">
-                          The word was: <span className="font-bold">{currentWord.word}</span>
-                        </p>
-                        {timeLeft <= 0 && (
-                          <p className="text-sm text-red-500">
-                            -{hangmanConfig.scoring.timeoutPenalty} pts timeout penalty
-                          </p>
-                        )}
-                        {wrongGuesses > 0 && (
-                          <p className="text-sm text-red-500">
-                            -{wrongGuesses * hangmanConfig.scoring.wrongGuessPenalty} pts wrong guess penalty
-                          </p>
-                        )}
-                      </div>
-                    )} */}
                   </div>
 
                   {/* Hangman Drawing - Cell C */}
@@ -529,9 +581,8 @@ export default function HangmanGame() {
               <div className="space-y-4">
                 <p className="text-2xl text-foreground font-medium">Final Score</p>
                 <h1 className="text-6xl font-bold text-foreground leading-tight">{score}</h1>
-                <p className="text-sm text-muted-foreground">
-                  You scored {score} points
-                </p>
+                <p className="text-sm text-muted-foreground">You scored {score} points</p>
+                <p className="text-sm text-muted-foreground">GPN: {userGpn}</p>
               </div>
 
               <div className="pt-8">
